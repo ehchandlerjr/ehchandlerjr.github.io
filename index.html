@@ -1,0 +1,1406 @@
+<!DOCTYPE html>
+        <html lang="en">
+        <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Pope Demon Hunter</title>
+        <style>
+        body {
+
+
+#difficultyBar {
+  position: absolute;
+  top: 45px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 200;
+  background: rgba(0, 0, 0, 0.8);
+  border: 2px solid gold;
+  border-radius: 8px;
+  padding: 6px 10px;
+  color: white;
+  font-size: 14px;
+  text-align: center;
+}
+#difficultySlider {
+  width: 150px;
+}
+
+
+        margin: 0;
+        padding: 0;
+        background: linear-gradient(135deg, #1a1a2e, #16213e);
+        font-family: 'Arial', sans-serif;
+        color: white;
+        overflow: hidden;
+        touch-action: none;
+        }
+
+        #gameContainer {
+        position: relative;
+        width: 100vw;
+        height: 100vh;
+        }
+
+        #gameCanvas {
+        background: linear-gradient(180deg, #2c1810, #1a0f0a);
+        display: block;
+        }
+
+        #ui {
+        position: absolute;
+        top: 60px;
+        left: 10px;
+        z-index: 150;
+        font-size: 16px;
+        text-shadow: 1px 1px 2px rgba(0,0,0,0.8);
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        }
+
+        #controls {
+        position: absolute;
+        
+        left: 50%;
+        transform: translateX(-50%);
+        z-index: 100;
+        
+top: 75%;
+}
+
+        #joystick {
+        width: 120px;
+        height: 120px;
+        background: rgba(255,255,255,0.1);
+        border: 3px solid rgba(255,255,255,0.3);
+        border-radius: 50%;
+        position: relative;
+        touch-action: none;
+        }
+
+        #joystickKnob {
+        width: 40px;
+        height: 40px;
+        background: rgba(255,215,0,0.8);
+        border: 2px solid rgba(255,255,255,0.5);
+        border-radius: 50%;
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        box-shadow: 0 0 10px rgba(255,215,0,0.5);
+        }
+
+        #skillBar {
+        position: absolute;
+        top: 10px;
+        left: 50%;
+        transform: translate(-50%, 0);
+        background: rgba(0,0,0,0.8);
+        border: 2px solid gold;
+        border-radius: 8px;
+        padding: 5px;
+        z-index: 200;
+        display: flex;
+        gap: 10px;
+        }
+
+        .skill {
+        width: 28px;
+        height: 28px;
+        border: 2px solid #666;
+        border-radius: 6px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 14px;
+        cursor: pointer;
+        transition: all 0.3s;
+        text-align: center;
+        position: relative;
+        }
+
+        .skill:hover, .skill:active {
+        box-shadow: 0 0 8px rgba(255,215,0,0.6);
+        }
+
+        .skill-level {
+        position: absolute;
+        bottom: 1px;
+        right: 1px;
+        font-size: 6px;
+        color: #ffffff;
+        text-shadow: 1px 1px 1px #000000;
+        }
+
+        .skill.available {
+        border-color: gold;
+        background: rgba(255,215,0,0.2);
+        }
+
+        .skill.maxed {
+        border-color: #4CAF50;
+        background: rgba(76,175,80,0.3);
+        }
+
+        .skill.disabled {
+        opacity: 0.3;
+        cursor: not-allowed;
+        }
+
+        #skillPoints {
+        position: absolute;
+        top: 60px;
+        right: 10px;
+        font-size: 16px;
+        color: gold;
+        text-shadow: 1px 1px 2px rgba(0,0,0,0.8);
+        text-align: right;
+        z-index: 150;
+        }
+        </style>
+        </head>
+        <body>
+        <div id="gameContainer">
+        <canvas id="gameCanvas"></canvas>
+
+        <div id="ui">
+        <div>Health: <span id="health">120</span></div>
+        <div>Score: <span id="score">0</span></div>
+        <div>Level: <span id="level">1</span></div>
+        <div>XP: <span id="xp">0</span> / <span id="xpNeeded">150</span></div>
+        <div>Class: <span id="classLevel">Pilgrim</span></div>
+        </div>
+
+        <div id="skillPoints">Skill Points: <span id="availablePoints">0</span></div>
+
+        <div id="controls">
+        <div id="joystick">
+        <div id="joystickKnob"></div>
+        </div>
+        </div>
+
+        
+<div id="difficultyBar">
+  Difficulty: <span id="difficultyLabel">Deacon</span><br />
+  <input type="range" id="difficultySlider" min="0" max="4" value="2" step="1" />
+</div>
+
+
+<div id="skillBar">
+        <div class="skill" data-skill="holyWater" title="Holy Water Blessing: Slows enemies">
+        <div>💧</div>
+        <div class="skill-level">L0</div>
+        </div>
+        <div class="skill" data-skill="summa" title="Summa Theologica: Larger projectiles">
+        <div>📖</div>
+        <div class="skill-level">L0</div>
+        </div>
+        <div class="skill" data-skill="rosary" title="Combat Rosary: Faster fire rate">
+        <div>📿</div>
+        <div class="skill-level">L0</div>
+        </div>
+        <div class="skill" data-skill="speed" title="Wings of Seraphim: Faster movement">
+        <div>🕊️</div>
+        <div class="skill-level">L0</div>
+        </div>
+        <div class="skill" data-skill="health" title="Sacred Heart: More health">
+        <div>✝️</div>
+        <div class="skill-level">L0</div>
+        </div>
+        <div class="skill" data-skill="damage" title="Sword of the Spirit: Stronger attacks">
+        <div>⚔️</div>
+        <div class="skill-level">L0</div>
+        </div>
+        <div class="skill" data-skill="multishot" title="Trinity Strike: More projectiles">
+        <div>🔱</div>
+        <div class="skill-level">L0</div>
+        </div>
+        <div class="skill" data-skill="healing" title="Grace of the Virgin: Passive healing">
+        <div>✨</div>
+        <div class="skill-level">L0</div>
+        </div>
+        <div class="skill" data-skill="divineJudgment" title="Divine Judgment: AoE incineration">
+        <div>✝️</div>
+        <div class="skill-level">L0</div>
+        </div>
+        </div>
+        </div>
+
+        <script>
+        // Game state
+        const game = {
+        canvas: null,
+        ctx: null,
+        width: 0,
+        height: 0,
+        centerX: 0,
+        centerY: 0,
+        player: {
+        x: 0,
+        y: 0,
+        angle: 0,
+        speed: 4.5,
+        health: 120,
+        maxHealth: 120,
+        size: 20,
+        invulnerable: 0,
+        pulse: 0,
+        baseY: 0
+        },
+        projectiles: [],
+        enemies: [],
+        powerUps: [],
+        particles: [],
+        textOverlays: [],
+        score: 0,
+        level: 1,
+        xp: 0,
+        xpNeeded: 150,
+        skillPoints: 0,
+        spentSkillPoints: 0,
+        classLevel: 'Pilgrim',
+        skills: {
+        holyWater: 0,
+        summa: 0,
+        rosary: 0,
+        speed: 0,
+        health: 0,
+        damage: 0,
+        multishot: 0,
+        healing: 0,
+        divineJudgment: 0,
+        divineJudgmentCooldown: 0
+        },
+        paused: false,
+        lastEnemySpawn: 0,
+        lastPowerUpSpawn: 0,
+        fireRate: 166,
+        lastShot: 0,
+        powerUpActive: null,
+        powerUpDuration: 0,
+        lastFrameTime: performance.now(),
+        michael: null,
+        screenShake: { intensity: 0, duration: 0 },
+        divineJudgment: null,
+        startupMessage: { text: 'Defend the Faith!', life: 120 }
+        };
+
+        // Input handling
+        const input = {
+        joystick: { x: 0, y: 0, active: false }
+        };
+
+        // Math cache
+        const { sqrt, cos, sin, atan2, random, PI } = Math;
+        const TWO_PI = PI * 2;
+
+        // Initialize game
+        function init() {
+        try {
+        game.canvas = document.getElementById('gameCanvas');
+        if (!game.canvas) throw new Error('Canvas not found');
+        game.ctx = game.canvas.getContext('2d');
+        if (!game.ctx) throw new Error('Canvas context not available');
+
+        resize();
+        window.addEventListener('resize', resize);
+
+        setupControls();
+        setupSkillBar();
+
+        game.player.x = game.centerX;
+        game.player.y = game.centerY;
+        game.player.baseY = game.centerY;
+
+        for (let i = 0; i < 2; i++) {
+        spawnEnemy();
+        }
+
+        console.log('Game initialized:', { player: game.player, enemies: game.enemies.length });
+        gameLoop();
+        } catch (e) {
+        console.error('Initialization error:', e);
+        }
+        }
+
+        function resize() {
+        game.width = window.innerWidth;
+        game.height = window.innerHeight;
+        game.centerX = game.width / 2;
+        game.centerY = game.height / 2;
+        game.canvas.width = game.width;
+        game.canvas.height = game.height;
+        }
+
+        function setupControls() {
+        const joystick = document.getElementById('joystick');
+        const joystickKnob = document.getElementById('joystickKnob');
+
+        function handleJoystickMove(clientX, clientY) {
+        const rect = joystick.getBoundingClientRect();
+        const centerX = rect.left + rect.width / 2;
+        const centerY = rect.top + rect.height / 2;
+
+        let deltaX = clientX - centerX;
+        let deltaY = clientY - centerY;
+
+        const distance = sqrt(deltaX * deltaX + deltaY * deltaY);
+        const maxDistance = 40;
+
+        if (distance > maxDistance) {
+        deltaX = (deltaX / distance) * maxDistance;
+        deltaY = (deltaY / distance) * maxDistance;
+        }
+
+        input.joystick.x = deltaX / maxDistance;
+        input.joystick.y = deltaY / maxDistance;
+
+        joystickKnob.style.transform = `translate(${deltaX - 20}px, ${deltaY - 20}px)`;
+        }
+
+        joystick.addEventListener('touchstart', (e) => {
+        e.preventDefault();
+        input.joystick.active = true;
+        handleJoystickMove(e.touches[0].clientX, e.touches[0].clientY);
+        });
+
+        joystick.addEventListener('touchmove', (e) => {
+        e.preventDefault();
+        if (input.joystick.active) {
+        handleJoystickMove(e.touches[0].clientX, e.touches[0].clientY);
+        }
+        });
+
+        joystick.addEventListener('touchend', (e) => {
+        e.preventDefault();
+        input.joystick.active = false;
+        input.joystick.x = 0;
+        input.joystick.y = 0;
+        joystickKnob.style.transform = 'translate(-50%, -50%)';
+        });
+        }
+
+        function setupSkillBar() {
+        const skills = document.querySelectorAll('.skill');
+
+        skills.forEach(skill => {
+        skill.addEventListener('click', () => {
+        const skillName = skill.dataset.skill;
+        purchaseSkill(skillName);
+        });
+        });
+
+        updateSkillBar();
+        }
+
+        function updateSkillBar() {
+        document.getElementById('availablePoints').textContent = game.skillPoints;
+
+        const skills = document.querySelectorAll('.skill');
+        skills.forEach(skill => {
+        const skillName = skill.dataset.skill;
+        const level = game.skills[skillName];
+        skill.className = 'skill';
+
+        const levelDisplay = skill.querySelector('.skill-level');
+        levelDisplay.textContent = `L${level}`;
+
+        let tooltip;
+        switch(skillName) {
+        case 'holyWater': tooltip = `Holy Water Blessing: ${5 * level}% Slow`; break;
+        case 'summa': tooltip = `Summa Theologica: +${12.5 * level}% Proj Size`; break;
+        case 'rosary': tooltip = `Combat Rosary: ${Math.round((1 - Math.max(50, 166 - level * 8)/166) * 100)}% Fire Rate`; break;
+        case 'speed': tooltip = `Wings of Seraphim: +${0.75 * level} Speed`; break;
+        case 'health': tooltip = `Sacred Heart: +${50 * level} Max Health`; break;
+        case 'damage': tooltip = `Sword of the Spirit: +${25 * level}% Damage`; break;
+        case 'multishot': tooltip = `Trinity Strike: ${Math.floor(1 + level * 0.5)} Projectiles`; break;
+        case 'healing': tooltip = `Grace of the Virgin: ${0.05 * level} HP/s`; break;
+        case 'divineJudgment': tooltip = `Divine Judgment: ${10 * level} AoE Damage, ${200 + level * 10}px Radius`; break;
+        }
+        skill.title = tooltip;
+
+        if (level >= 10) {
+        skill.classList.add('maxed');
+        } else if (game.skillPoints > 0 && (skillName !== 'divineJudgment' || game.skills.divineJudgmentCooldown <= 0)) {
+        skill.classList.add('available');
+        } else if (skillName === 'divineJudgment' && game.skills.divineJudgmentCooldown > 0) {
+        skill.classList.add('disabled');
+        }
+        });
+        }
+
+        function purchaseSkill(skillName) {
+        if (game.skillPoints > 0 && game.skills[skillName] < 10) {
+        if (skillName === 'divineJudgment' && game.skills.divineJudgmentCooldown > 0) {
+        return;
+        }
+        game.skills[skillName]++;
+        game.skillPoints--;
+        game.spentSkillPoints++;
+        applySkillEffect(skillName);
+        updateClassLevel();
+        updateSkillBar();
+        }
+        }
+
+        function updateClassLevel() {
+        const points = game.spentSkillPoints;
+        let newClass;
+        if (points >= 40) newClass = 'Doctor of the Church';
+        else if (points >= 30) newClass = 'Martyr';
+        else if (points >= 20) newClass = 'Apostle';
+        else if (points >= 10) newClass = 'Disciple';
+        else newClass = 'Pilgrim';
+
+        if (newClass !== game.classLevel) {
+        game.classLevel = newClass;
+        addTextOverlay(`Promoted to ${newClass}!`, '#ffd700');
+        }
+        updateUI();
+        }
+
+        function addTextOverlay(text, color) {
+        const index = game.textOverlays.length;
+        game.textOverlays.push({
+        text: text,
+        x: game.centerX,
+        y: game.centerY - 50 * index,
+        life: 180,
+        color: color,
+        opacity: 1,
+        scale: 1
+        });
+        }
+
+        function applySkillEffect(skillName) {
+        const level = game.skills[skillName];
+        const gameLevel = game.level;
+        const shakeIntensity = gameLevel >= 7 ? 8 : gameLevel >= 4 ? 4 : 0;
+        if (shakeIntensity > 0) {
+        game.screenShake = { intensity: shakeIntensity, duration: 50 };
+        }
+
+        const particleCount = gameLevel >= 7 ? 20 : gameLevel >= 4 ? 15 : 10;
+        game.player.pulse = 12;
+
+        let shape;
+        switch(skillName) {
+        case 'speed':
+        shape = 'feather';
+        createParticles(game.player.x, game.player.y, '#ffffff', particleCount, 3, shape);
+        addTextOverlay(`Wings of Seraphim`, "#ffffff");
+addTextOverlay(`+${0.75 * level} Speed`, "#ffffff");
+        game.player.speed = 4.5 + level * 0.75;
+        break;
+        case 'health':
+        shape = 'heart';
+        game.player.maxHealth += 50;
+        game.player.health = game.player.maxHealth;
+        createParticles(game.player.x, game.player.y, '#ff3333', particleCount, 3, shape);
+        if (gameLevel >= 4) {
+        game.ctx.fillStyle = 'rgba(255, 51, 51, 0.5)';
+        game.ctx.fillRect(0, 0, game.width, game.height);
+        }
+        addTextOverlay(`Sacred Heart`, "#ff3333");
+addTextOverlay(`+${50 * level} Max Health`, "#ff3333");
+        break;
+        case 'damage':
+        shape = 'sword';
+        createParticles(game.player.x, game.player.y, '#ff4500', particleCount, 3, shape);
+        addTextOverlay(`Sword of the Spirit`, "#ff4500");
+addTextOverlay(`+${25 * level}% Damage`, "#ff4500");
+        break;
+        case 'holyWater':
+        shape = 'droplet';
+        createParticles(game.player.x, game.player.y, '#00b7eb', particleCount, 3, shape);
+        addTextOverlay(`Holy Water Blessing`, "#00b7eb");
+addTextOverlay(`${5 * level}% Slow`, "#00b7eb");
+        break;
+        case 'summa':
+        shape = 'book';
+        createParticles(game.player.x, game.player.y, '#ff8c00', particleCount, 3, shape);
+        addTextOverlay(`Summa Theologica`, "#ff8c00");
+addTextOverlay(`+${12.5 * level}% Proj Size`, "#ff8c00");
+        break;
+        case 'rosary':
+        shape = 'bead';
+        game.fireRate = Math.max(50, 166 - level * 8);
+        createParticles(game.player.x, game.player.y, '#f0e68c', particleCount, 3, shape);
+        addTextOverlay(`Combat Rosary`, "#f0e68c");
+addTextOverlay(`${Math.round((1 - game.fireRate/166) * 100)}% Fire Rate`, "#f0e68c");
+        break;
+        case 'multishot':
+        shape = 'trident';
+        createParticles(game.player.x, game.player.y, '#ffd700', particleCount, 3, shape);
+        addTextOverlay(`Trinity Strike`, "#ffd700");
+addTextOverlay(`${Math.floor(1 + level * 0.5)} Projectiles`, "#ffd700");
+        break;
+        case 'healing':
+        shape = 'star';
+        createParticles(game.player.x, game.player.y, '#ff69b4', particleCount, 3, shape);
+        addTextOverlay(`Grace of the Virgin`, "#ff69b4");
+addTextOverlay(`${0.05 * level} HP/s`, "#ff69b4");
+        break;
+        case 'divineJudgment':
+        shape = 'cross';
+        game.skills.divineJudgmentCooldown = 1800;
+        game.divineJudgment = {
+        phase: 'pause',
+        timer: 0,
+        duration: 30,
+        damage: 10 * level,
+        crossY: game.player.y - 150
+        };
+        console.log('Divine Judgment activated:', game.divineJudgment);
+        createParticles(game.player.x, game.player.y, '#ffffff', particleCount, 3, shape);
+        addTextOverlay(`Divine Judgment`, "#ffd700");
+addTextOverlay(`${10 * level} AoE Incineration`, "#ffd700");
+        break;
+        }
+        }
+
+        function update(now) {
+        if (game.paused) return;
+
+        let deltaTime = (now - game.lastFrameTime) / 1000;
+        if (isNaN(deltaTime) || deltaTime > 0.016) deltaTime = 0.016;
+        game.lastFrameTime = now;
+
+        if (game.screenShake.duration > 0) {
+        game.screenShake.duration -= deltaTime * 60;
+        } else {
+        game.screenShake.intensity = 0;
+        }
+
+        game.textOverlays.forEach((overlay, index) => {
+        overlay.life -= deltaTime * 60;
+        overlay.opacity = overlay.life / 180;
+        overlay.scale += deltaTime * 1.1;
+        if (overlay.life <= 0) {
+        game.textOverlays.splice(index, 1);
+        }
+        });
+
+        if (game.startupMessage) {
+        game.startupMessage.life -= deltaTime * 60;
+        if (game.startupMessage.life <= 0) {
+        game.startupMessage = null;
+        }
+        }
+
+        if (game.divineJudgment) {
+        updateDivineJudgment(deltaTime);
+        }
+
+        if (!game.divineJudgment || game.divineJudgment.phase === 'impact') {
+        game.player.x += input.joystick.x * game.player.speed * deltaTime * 60;
+        game.player.y += input.joystick.y * game.player.speed * deltaTime * 60;
+
+        game.player.x = Math.max(game.player.size, Math.min(game.width - game.player.size, game.player.x));
+        game.player.y = Math.max(game.player.size, Math.min(game.height - game.player.size, game.player.y));
+
+        game.player.baseY = game.player.y;
+
+        if (input.joystick.x !== 0 || input.joystick.y !== 0) {
+        game.player.angle = atan2(input.joystick.y, input.joystick.x);
+        }
+        }
+
+        if (game.player.invulnerable > 0) {
+        game.player.invulnerable -= deltaTime * 60;
+        }
+
+        if (game.player.pulse > 0) {
+        game.player.pulse -= deltaTime * 60;
+        }
+
+        if (game.skills.divineJudgmentCooldown > 0) {
+        game.skills.divineJudgmentCooldown -= deltaTime * 60;
+        if (game.skills.divineJudgmentCooldown <= 0) {
+        updateSkillBar();
+        }
+        }
+
+        if (!game.divineJudgment || game.divineJudgment.phase === 'impact') {
+        if (game.michael) {
+        updateMichael(deltaTime);
+        }
+
+        if (now - game.lastShot > game.fireRate) {
+        shootAtClosest();
+        game.lastShot = now;
+        }
+
+        const spawnRate = game.difficultySpawnRate;
+        if (now - game.lastEnemySpawn > spawnRate && !game.michael && !game.divineJudgment) {
+        spawnEnemy();
+        game.lastEnemySpawn = now;
+        }
+
+        if (now - game.lastPowerUpSpawn > 20000 + random() * 15000) {
+        spawnPowerUp();
+        game.lastPowerUpSpawn = now;
+        }
+
+        game.projectiles.forEach((proj, index) => {
+        proj.x += cos(proj.angle) * proj.speed * deltaTime * 60;
+        proj.y += sin(proj.angle) * proj.speed * deltaTime * 60;
+
+        if (proj.x < 0 || proj.x > game.width || proj.y < 0 || proj.y > game.height) {
+        game.projectiles.splice(index, 1);
+        }
+        });
+
+        game.powerUps.forEach((powerUp, index) => {
+        const dx = game.player.x - powerUp.x;
+        const dy = game.player.y - powerUp.y;
+        const distance = sqrt(dx * dx + dy * dy);
+
+        if (distance < game.player.size + powerUp.size) {
+        activatePowerUp(powerUp.type);
+        game.powerUps.splice(index, 1);
+        }
+        });
+
+        if (game.powerUpActive && game.powerUpDuration > 0) {
+        game.powerUpDuration -= deltaTime * 60;
+        if (game.powerUpDuration <= 0) {
+        game.powerUpActive = null;
+        game.player.speed = 4.5 + (game.skills.speed * 0.75);
+        }
+        }
+
+        game.enemies.forEach((enemy, index) => {
+        const dx = game.player.x - enemy.x;
+        const dy = game.player.y - enemy.y;
+        const distance = sqrt(dx * dx + dy * dy);
+
+        enemy.x += (dx / distance) * enemy.speed * deltaTime * 60;
+        enemy.y += (dy / distance) * enemy.speed * deltaTime * 60;
+
+        if (distance < game.player.size + enemy.size && game.player.invulnerable <= 0) {
+        let damage = game.level >= 7 ? 8 : game.level >= 4 ? 7 : 6;
+        if (game.powerUpActive === 'infallibility') damage = 0;
+        game.player.health -= damage * deltaTime * 60;
+        game.enemies.splice(index, 1);
+        game.player.invulnerable = 30;
+
+        if (game.player.health <= 0) {
+        alert('Game Over! Score: ' + game.score);
+        location.reload();
+        }
+        }
+        });
+
+        game.projectiles.forEach((proj, projIndex) => {
+        game.enemies.forEach((enemy, enemyIndex) => {
+        const dx = proj.x - enemy.x;
+        const dy = proj.y - enemy.y;
+        const distance = sqrt(dx * dx + dy * dy);
+
+        if (distance < proj.size + enemy.size) {
+        enemy.health -= proj.damage;
+        game.projectiles.splice(projIndex, 1);
+        createParticles(enemy.x, enemy.y, game.powerUpActive === 'infallibility' ? '#ff4500' : '#ffd700', game.level >= 7 ? 15 : 10, 3, 'cross');
+
+        if (enemy.health <= 0) {
+        const particleColor = game.powerUpActive === 'infallibility' ? '#ff4500' : '#ff6b6b';
+        const deathParticles = game.level >= 7 ? 20 : game.level >= 4 ? 15 : 10;
+        createParticles(enemy.x, enemy.y, particleColor, deathParticles, 3, 'cross');
+        game.enemies.splice(enemyIndex, 1);
+        const scoreValue = enemy.maxHealth * 8;
+        game.score += scoreValue;
+        game.xp += scoreValue;
+        if (game.level >= 4) {
+        game.screenShake = { intensity: 4, duration: 20 };
+        }
+
+        if (game.xp >= game.xpNeeded) {
+        levelUp();
+        }
+        }
+        }
+        });
+        });
+
+        game.powerUps.forEach((powerUp, index) => {
+        powerUp.life -= deltaTime * 60;
+        if (powerUp.life <= 0) {
+        game.powerUps.splice(index, 1);
+        }
+        });
+        }
+
+        game.particles.forEach((particle, index) => {
+        particle.x += particle.vx * deltaTime * 60;
+        particle.y += particle.vy * deltaTime * 60;
+        particle.life -= deltaTime * 60;
+
+        if (particle.life <= 0) {
+        game.particles.splice(index, 1);
+        }
+        });
+
+        if (game.particles.length > 400) {
+        game.particles.splice(0, game.particles.length - 400);
+        }
+
+        if (game.skills.healing > 0 && game.player.health < game.player.maxHealth) {
+        const healRate = 0.05 * game.skills.healing;
+        game.player.health = Math.min(game.player.maxHealth, game.player.health + healRate * deltaTime * 60);
+        if (random() < 0.15) {
+        createParticles(game.player.x, game.player.y, '#ff69b4', 5, 3, 'star');
+        }
+        }
+
+        if (game.level >= 4 && game.player.health < game.player.maxHealth) {
+        game.player.health = Math.min(game.player.maxHealth, game.player.health + 0.05 * deltaTime * 60);
+        }
+
+        if (game.skills.speed || game.powerUpActive === 'infallibility') {
+        if (input.joystick.active) {
+        createParticles(game.player.x, game.player.y, '#ffffff', 5, 3, 'feather');
+        }
+        }
+
+        updateUI();
+        }
+
+        function updateDivineJudgment(deltaTime) {
+        game.divineJudgment.timer += deltaTime * 60;
+        const level = game.skills.divineJudgment;
+        const t = game.divineJudgment.timer / game.divineJudgment.duration;
+
+        if (game.divineJudgment.phase === 'pause') {
+        if (t >= 1) {
+        game.divineJudgment.phase = 'ascent';
+        game.divineJudgment.timer = 0;
+        game.divineJudgment.duration = 45;
+        }
+        } else if (game.divineJudgment.phase === 'ascent') {
+        game.player.y = game.player.baseY - 75 * Math.min(t, 1);
+        if (t >= 1) {
+        game.divineJudgment.phase = 'descent';
+        game.divineJudgment.timer = 0;
+        game.divineJudgment.duration = 45;
+        }
+        } else if (game.divineJudgment.phase === 'descent') {
+        game.divineJudgment.crossY = game.player.baseY - 150 + 225 * t;
+        game.player.y = game.player.baseY - 75;
+        createParticles(game.player.x, game.divineJudgment.crossY, '#ffd700', 10, 3, 'cross');
+        if (t >= 1) {
+        game.divineJudgment.phase = 'impact';
+        game.divineJudgment.timer = 0;
+        game.divineJudgment.duration = 30;
+        game.player.y = game.player.baseY;
+
+        
+for (let i = game.enemies.length - 1; i >= 0; i--) {
+    const enemy = game.enemies[i];
+    const dx = enemy.x - game.player.x;
+    const dy = enemy.y - game.player.y;
+    const distance = Math.sqrt(dx * dx + dy * dy);
+    const radius = 150 + level * 50;
+    if (distance < radius) {
+        createParticles(enemy.x, enemy.y, '#ff4500', 30, 3, 'fire');
+        createParticles(enemy.x, enemy.y, '#666666', 20, 3, 'smoke');
+        game.enemies.splice(i, 1);
+        game.score += enemy.maxHealth * 8;
+        game.xp += enemy.maxHealth * 8;
+    }
+}
+
+
+        if (game.level >= 4) {
+        game.ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
+        game.ctx.fillRect(0, 0, game.width, game.height);
+        }
+        const rumble = game.level >= 7 ? 16 : game.level >= 4 ? 12 : 8;
+        game.screenShake = { intensity: rumble, duration: 80 };
+        }
+        } else if (game.divineJudgment.phase === 'impact') {
+        if (game.divineJudgment.timer >= game.divineJudgment.duration) {
+        
+// Leave fire and smoke trail
+for (let i = 0; i < 6 + level * 2; i++) {
+    const angle = Math.random() * Math.PI * 2;
+    const dist = Math.random() * (150 + 50 * level);
+    const fx = game.player.x + Math.cos(angle) * dist;
+    const fy = game.player.y + Math.sin(angle) * dist;
+    createParticles(fx, fy, '#ff4500', 10, 3, 'fire');
+    createParticles(fx, fy, '#666666', 8, 3, 'smoke');
+}
+
+        game.divineJudgment = null;
+        }
+        }
+        }
+
+        function updateMichael(deltaTime) {
+        if (!game.michael) return;
+        game.michael.duration = (game.michael.duration || 360);
+        game.michael.duration -= deltaTime * 60;
+        if (game.enemies.length === 0 || game.michael.duration <= 0) {
+        game.michael = null;
+        game.powerUpActive = null;
+        return;
+        }
+        if (!game.michael.target && game.enemies.length > 0) {
+        let closestEnemy = null;
+        let closestDistance = Infinity;
+        game.enemies.forEach(enemy => {
+        const dx = enemy.x - game.michael.x;
+        const dy = enemy.y - game.michael.y;
+        const distance = sqrt(dx * dx + dy * dy);
+        if (distance < closestDistance) {
+        closestDistance = distance;
+        closestEnemy = enemy;
+        }
+        });
+        game.michael.target = closestEnemy;
+        game.michael.attackTimer = 100;
+        }
+        if (game.michael.target) {
+        const dx = game.michael.target.x - game.michael.x;
+        const dy = game.michael.target.y - game.michael.y;
+        const distance = sqrt(dx * dx + dy * dy);
+        const speed = 25 * deltaTime * 60;
+        if (distance > 10) {
+        game.michael.x += (dx / distance) * speed;
+        game.michael.y += (dy / distance) * speed;
+        game.michael.x = Math.max(20, Math.min(game.width - 20, game.michael.x));
+        game.michael.y = Math.max(20, Math.min(game.height - 20, game.michael.y));
+        createParticles(game.michael.x, game.michael.y, '#ffd700', game.level >= 7 ? 15 : 10, 3, 'cross');
+        } else {
+        game.enemies.forEach((enemy, index) => {
+        const dx = enemy.x - game.michael.x;
+        const dy = enemy.y - game.michael.y;
+        const distance = sqrt(dx * dx + dy * dy);
+        if (distance < 150) {
+        enemy.health -= 4;
+        createParticles(enemy.x, enemy.y, '#ffffff', game.level >= 7 ? 25 : 15, 3, 'cross');
+        if (enemy.health <= 0) {
+        createParticles(enemy.x, enemy.y, '#ff6b6b', game.level >= 7 ? 35 : 20, 3, 'cross');
+        game.enemies.splice(index, 1);
+        game.score += enemy.maxHealth * 8;
+        game.xp += enemy.maxHealth * 8;
+        if (game.level >= 4) {
+        game.screenShake = { intensity: 6, duration: 30 };
+        }
+        }
+        }
+        });
+        game.michael.target = null;
+        }
+        }
+        }
+
+        function shootAtClosest() {
+        if (game.enemies.length === 0 || game.divineJudgment && game.divineJudgment.phase !== 'impact') return;
+
+        let closestEnemy = null;
+        let closestDistance = Infinity;
+
+        game.enemies.forEach(enemy => {
+        const dx = enemy.x - game.player.x;
+        const dy = enemy.y - game.player.y;
+        const distance = sqrt(dx * dx + dy * dy);
+
+        if (distance < closestDistance) {
+        closestDistance = distance;
+        closestEnemy = enemy;
+        }
+        });
+
+        if (closestEnemy) {
+        const dx = closestEnemy.x - game.player.x;
+        const dy = closestEnemy.y - game.player.y;
+        const angle = atan2(dy, dx);
+
+        const shots = game.skills.multishot ? Math.floor(1 + game.skills.multishot * 0.5) : 1;
+        const angleSpread = game.skills.multishot ? 0.3 : 0;
+        const baseSize = game.level >= 7 ? 5 : game.level >= 4 ? 4.5 : 4;
+        const baseDamage = game.level >= 7 ? 1 : game.level >= 4 ? 0.875 : 0.75;
+
+        for (let i = 0; i < shots; i++) {
+        const shotAngle = angle + (i - (shots - 1) / 2) * angleSpread;
+        const projectile = {
+        x: game.player.x,
+        y: game.player.y,
+        angle: shotAngle,
+        speed: 10,
+        size: game.skills.summa ? baseSize * (1 + game.skills.summa * 0.125) : baseSize,
+        damage: game.powerUpActive === 'infallibility' ? Infinity : baseDamage * (game.skills.damage ? 1 + game.skills.damage * 0.25 : 1)
+        };
+        game.projectiles.push(projectile);
+        }
+        }
+        }
+
+        function spawnPowerUp() {
+        const types = ['infallibility', 'michael'];
+        const type = types[Math.floor(random() * types.length)];
+
+        const powerUp = {
+        x: random() * (game.width - 100) + 50,
+        y: random() * (game.height - 100) + 50,
+        type: type,
+        size: 15,
+        life: 600
+        };
+
+        game.powerUps.push(powerUp);
+        }
+
+        function activatePowerUp(type) {
+        game.powerUpActive = type;
+        game.powerUpDuration = type === 'michael' ? 0 : 540;
+
+        game.screenShake = { intensity: 10, duration: 60 };
+        createParticles(game.player.x, game.player.y, '#ffd700', 50, 3, 'cross');
+
+        let textColor;
+        switch(type) {
+        case 'infallibility':
+        game.player.speed += 12;
+        createParticles(game.player.x, game.player.y, '#ffffff', 80, 3, 'cross');
+        game.ctx.fillStyle = 'rgba(255,255,255,0.8)';
+        game.ctx.fillRect(0, 0, game.width, game.height);
+        textColor = '#ffffff';
+        addTextOverlay('Papal Infallibility!', textColor);
+addTextOverlay('+12 Speed, One-Shot Kills', textColor);
+        break;
+        case 'michael':
+        game.michael = {
+        x: game.player.x,
+        y: game.player.y,
+        target: null,
+        attackTimer: 0,
+        duration: 360
+        };
+        createParticles(game.player.x, game.player.y, '#ffd700', 60, 3, 'cross');
+        game.ctx.fillStyle = 'rgba(255,255,255,0.7)';
+        game.ctx.fillRect(0, 0, game.width, game.height);
+        textColor = '#ffd700';
+        addTextOverlay('St. Michael’s Wrath!', textColor);
+addTextOverlay('4 DMG AoE', textColor);
+        break;
+        }
+        }
+
+        function spawnEnemy() {
+        const side = Math.floor(random() * 4);
+        let x, y;
+
+        switch(side) {
+        case 0: x = random() * game.width; y = -20; break;
+        case 1: x = game.width + 20; y = random() * game.height; break;
+        case 2: x = random() * game.width; y = game.height + 20; break;
+        case 3: x = -20; y = random() * game.height; break;
+        }
+
+        const enemyTypes = [
+        { symbol: '⛤', health: 2, speed: 1.1, size: 12 },
+        { symbol: '👹', health: 4, speed: 0.9, size: 15 },
+        { symbol: '🔥', health: 2, speed: 1.5, size: 10 },
+        { symbol: '💀', health: 6, speed: 0.75, size: 18 },
+        { symbol: '🐍', health: 4, speed: 1.3, size: 14 },
+        { symbol: '☠️', health: 8, speed: 0.6, size: 16 },
+        { symbol: '⚡', health: 3, speed: 2, size: 8 },
+        { symbol: '🦋', health: 5, speed: 1, size: 13 }
+        ];
+
+        let enemyType;
+        const rand = random();
+        if (game.level <= 3) {
+        enemyType = enemyTypes[Math.floor(rand * 5)];
+        } else if (game.level <= 5) {
+        enemyType = enemyTypes[Math.floor(rand * 6)];
+        } else {
+        enemyType = enemyTypes[Math.floor(rand * enemyTypes.length)];
+        }
+
+        const healthScale = game.level <= 3 ? 1 + game.level * 0.08 : 1 + game.level * 0.12;
+        const enemy = {
+        x: x,
+        y: y,
+        size: enemyType.size,
+        speed: enemyType.speed * (game.skills.holyWater ? 1 - (0.05 + game.skills.holyWater * 0.05) : 1),
+        health: enemyType.health * healthScale,
+        maxHealth: enemyType.health * healthScale,
+        symbol: enemyType.symbol,
+        glow: game.skills.holyWater ? '#00b7eb' : null
+        };
+
+        game.enemies.push(enemy);
+        }
+
+        function createParticles(x, y, color, count = 5, size = 3, shape = 'cross') {
+        const symbols = {
+        droplet: '💧',
+        book: '📖',
+        bead: '🔴',
+        heart: '✝️',
+        sword: '🔥',
+        trident: '🔱',
+        star: '✨',
+        cross: '✝️',
+        fire: '🔥',
+        smoke: '💨'
+        };
+        for (let i = 0; i < count; i++) {
+        const particle = {
+        x: x,
+        y: y,
+        vx: (random() - 0.5) * 8,
+        vy: (random() - 0.5) * 8,
+        life: 30,
+        color: color,
+        size: size,
+        shape: symbols[shape] || shape
+        };
+        game.particles.push(particle);
+        }
+        }
+
+        function levelUp() {
+        game.level++;
+        game.xp = 0;
+        game.xpNeeded = game.level <= 3 ? 150 + game.level * 75 : game.level * 150;
+        game.skillPoints++;
+        const particleCount = game.level >= 7 ? 30 : game.level >= 4 ? 25 : 20;
+        createParticles(game.player.x, game.player.y, '#ffd700', particleCount, 3, 'cross');
+        addTextOverlay('Level Up! Point Added', '#ffd700');
+        }
+
+        function updateUI() {
+        document.getElementById('health').textContent = Math.round(game.player.health);
+        document.getElementById('score').textContent = game.score;
+        document.getElementById('level').textContent = game.level;
+        document.getElementById('xp').textContent = game.xp;
+        document.getElementById('xpNeeded').textContent = game.xpNeeded;
+        document.getElementById('classLevel').textContent = game.classLevel;
+        document.getElementById('availablePoints').textContent = game.skillPoints;
+        }
+
+        function render() {
+        try {
+        game.ctx.save();
+        console.log('Rendering frame:', { player: game.player, enemies: game.enemies.length });
+
+        if (game.screenShake.intensity > 0) {
+        const offsetX = (random() - 0.5) * game.screenShake.intensity;
+        const offsetY = (random() - 0.5) * game.screenShake.intensity;
+        game.ctx.translate(offsetX, offsetY);
+        }
+
+        game.ctx.fillStyle = '#1a0f0a';
+        game.ctx.fillRect(0, 0, game.width, game.height);
+
+        if (game.divineJudgment && game.divineJudgment.phase === 'pause') {
+        game.ctx.fillStyle = 'rgba(255,255,255,0.3)';
+        game.ctx.fillRect(0, 0, game.width, game.height);
+        game.ctx.fillStyle = 'rgba(0,0,0,0.5)';
+        game.ctx.fillRect(0, 0, game.width, 50);
+        game.ctx.fillRect(0, game.height - 50, game.width, 50);
+        game.ctx.fillRect(0, 0, 50, game.height);
+        game.ctx.fillRect(game.width - 50, 0, 50, game.height);
+        }
+
+        if (game.startupMessage) {
+        game.ctx.save();
+        game.ctx.globalAlpha = game.startupMessage.life / 120;
+        game.ctx.fillStyle = '#ffd700';
+        game.ctx.font = '20px Arial';
+        game.ctx.textAlign = 'center';
+        game.ctx.textBaseline = 'middle';
+        game.ctx.fillText(game.startupMessage.text, game.centerX, game.centerY);
+        game.ctx.restore();
+        }
+
+        game.ctx.font = '20px Arial';
+        game.ctx.textAlign = 'center';
+        game.ctx.textBaseline = 'middle';
+        game.textOverlays.forEach(overlay => {
+        game.ctx.save();
+        game.ctx.globalAlpha = overlay.opacity;
+        game.ctx.fillStyle = overlay.color;
+        game.ctx.font = `${12 * overlay.scale}px Arial`;
+        game.ctx.fillText(overlay.text, overlay.x, overlay.y);
+        game.ctx.restore();
+        });
+
+        game.ctx.save();
+        game.ctx.beginPath();
+        game.ctx.rect(0, 0, game.width, game.height);
+        game.ctx.clip();
+        game.particles.forEach(particle => {
+        if (particle.x < 0 || particle.x > game.width || particle.y < 0 || particle.y > game.height) return;
+        game.ctx.save();
+        game.ctx.translate(particle.x, particle.y);
+        game.ctx.globalAlpha = particle.life / 30;
+        game.ctx.fillStyle = particle.color;
+        game.ctx.font = `${particle.size * 2}px Arial`;
+        game.ctx.textAlign = 'center';
+        game.ctx.fillText(particle.shape, 0, particle.size);
+        game.ctx.restore();
+        });
+        game.ctx.restore();
+
+        if (game.michael) {
+        game.ctx.save();
+        game.ctx.translate(game.michael.x, game.michael.y);
+        game.ctx.fillStyle = 'rgba(255,215,0,0.6)';
+        game.ctx.beginPath();
+        game.ctx.arc(0, 0, 40, 0, TWO_PI);
+        game.ctx.fill();
+
+        game.ctx.shadowColor = '#ffffff';
+        game.ctx.shadowBlur = 30;
+
+        game.ctx.fillStyle = '#ffffff';
+        game.ctx.font = '50px Arial';
+        game.ctx.textAlign = 'center';
+        game.ctx.fillText('⚔️', 0, 10);
+
+        game.ctx.strokeStyle = 'rgba(255,255,255,0.6)';
+        game.ctx.lineWidth = 5;
+        game.ctx.beginPath();
+        game.ctx.moveTo(-30, 0);
+        game.ctx.quadraticCurveTo(0, -35, 30, 0);
+        game.ctx.stroke();
+        game.ctx.beginPath();
+        game.ctx.moveTo(-30, 0);
+        game.ctx.quadraticCurveTo(0, 35, 30, 0);
+        game.ctx.stroke();
+
+        game.ctx.restore();
+        }
+
+        game.ctx.save();
+        game.ctx.translate(game.player.x, game.player.y);
+        console.log('Drawing player at:', { x: game.player.x, y: game.player.y });
+
+        const pulseScale = game.player.pulse > 0 ? 1 + 0.3 * (game.player.pulse / 12) : 1;
+        game.ctx.scale(pulseScale, pulseScale);
+
+        if (game.divineJudgment && game.divineJudgment.phase !== 'impact') {
+        const pulse = 0.5 + 0.3 * Math.sin(game.divineJudgment.timer * 0.1);
+        game.ctx.fillStyle = `rgba(255,255,255,${pulse})`;
+        game.ctx.beginPath();
+        game.ctx.arc(0, 0, 50, 0, TWO_PI);
+        game.ctx.fill();
+        }
+
+        if (game.powerUpActive && !game.michael) {
+        game.ctx.strokeStyle = 'rgba(255,215,0,0.6)';
+        game.ctx.lineWidth = 5;
+        for (let i = 0; i < 10; i++) {
+        const angle = (i / 10) * TWO_PI;
+        game.ctx.beginPath();
+        game.ctx.moveTo(0, 0);
+        game.ctx.lineTo(cos(angle) * 40, sin(angle) * 40);
+        game.ctx.stroke();
+        }
+
+        game.ctx.strokeStyle = '#ffd700';
+        game.ctx.lineWidth = 6;
+        game.ctx.beginPath();
+        game.ctx.arc(0, -20, 30, 0, TWO_PI);
+        game.ctx.stroke();
+
+        if (game.powerUpActive === 'infallibility') {
+        game.ctx.fillStyle = 'rgba(255,255,255,0.5)';
+        game.ctx.beginPath();
+        game.ctx.arc(0, 0, 35, 0, TWO_PI);
+        game.ctx.fill();
+        }
+        }
+
+        if (game.skills.speed || game.skills.damage || game.skills.rosary || game.skills.multishot) {
+        game.ctx.fillStyle = 'rgba(255,215,0,0.5)';
+        game.ctx.beginPath();
+        game.ctx.arc(0, 0, 35, 0, TWO_PI);
+        game.ctx.fill();
+        }
+
+        game.ctx.fillStyle = '#ffffff';
+        game.ctx.fillRect(-10, -5, 20, 15);
+
+        game.ctx.fillStyle = '#ffd700';
+        game.ctx.beginPath();
+        game.ctx.moveTo(-12, -8);
+        game.ctx.lineTo(12, -8);
+        game.ctx.lineTo(8, -20);
+        game.ctx.lineTo(-8, -20);
+        game.ctx.closePath();
+        game.ctx.fill();
+
+        game.ctx.beginPath();
+        game.ctx.moveTo(-8, -20);
+        game.ctx.lineTo(0, -28);
+        game.ctx.lineTo(8, -20);
+        game.ctx.closePath();
+        game.ctx.fill();
+
+        game.ctx.fillStyle = '#ffffff';
+        game.ctx.fillRect(-10, -12, 20, 2);
+
+        game.ctx.fillRect(-1, -25, 2, 8);
+        game.ctx.fillRect(-4, -22, 8, 2);
+
+        game.ctx.restore();
+
+        if (game.divineJudgment && game.divineJudgment.phase === 'descent') {
+        game.ctx.save();
+        game.ctx.translate(game.player.x, game.divineJudgment.crossY);
+        const gradient = game.ctx.createRadialGradient(0, 0, 0, 0, 0, 100);
+        gradient.addColorStop(0, 'rgba(255,215,0,0.8)');
+        gradient.addColorStop(1, 'rgba(255,215,0,0)');
+        game.ctx.globalCompositeOperation = 'lighter';
+        game.ctx.fillStyle = gradient;
+        game.ctx.beginPath();
+        game.ctx.arc(0, 0, 100, 0, TWO_PI);
+        game.ctx.fill();
+        game.ctx.globalCompositeOperation = 'source-over';
+        game.ctx.fillStyle = '#ffffff';
+        game.ctx.font = '75px Arial';
+        game.ctx.textAlign = 'center';
+        game.ctx.fillText('✝️', 0, 0);
+        game.ctx.restore();
+        }
+
+        if (game.divineJudgment && game.divineJudgment.phase === 'impact') {
+        game.ctx.save();
+        game.ctx.translate(game.player.x, game.player.y);
+        const t = game.divineJudgment.timer / game.divineJudgment.duration;
+        for (let i = 0; i < 3; i++) {
+        const radius = (50 + i * 75) * t;
+        game.ctx.strokeStyle = `rgba(255,${255 - i * 50},${255 - i * 100},${1 - t})`;
+        game.ctx.lineWidth = 5;
+        game.ctx.beginPath();
+        game.ctx.arc(0, 0, radius, 0, TWO_PI);
+        game.ctx.stroke();
+        }
+        game.ctx.restore();
+        }
+
+        game.projectiles.forEach(proj => {
+        game.ctx.save();
+        game.ctx.translate(proj.x, proj.y);
+        let color = '#ffd700';
+        let symbol = '✞';
+        if (game.skills.rosary) {
+        symbol = '📿';
+        }
+        if (game.powerUpActive === 'infallibility') {
+        color = '#ffffff';
+        symbol = '🌟';
+        }
+        game.ctx.fillStyle = color;
+        game.ctx.font = `${proj.size * 2}px Arial`;
+        game.ctx.textAlign = 'center';
+        game.ctx.fillText(symbol, 0, proj.size);
+        game.ctx.restore();
+        });
+
+        game.powerUps.forEach(powerUp => {
+        game.ctx.save();
+        game.ctx.shadowColor = '#ffd700';
+        game.ctx.shadowBlur = 20;
+
+        game.ctx.fillStyle = '#ffd700';
+        game.ctx.font = '35px Arial';
+        game.ctx.textAlign = 'center';
+
+        let symbol = '';
+        let name = '';
+        switch(powerUp.type) {
+        case 'infallibility': symbol = '🌟'; name = 'Papal Infallibility'; break;
+        case 'michael': symbol = '⚔️'; name = 'St. Michael’s Wrath'; break;
+        }
+
+        game.ctx.fillText(symbol, powerUp.x, powerUp.y + 8);
+
+        game.ctx.font = '12px Arial';
+        game.ctx.fillStyle = '#ffffff';
+        game.ctx.fillText(name, powerUp.x, powerUp.y + 30);
+
+        game.ctx.restore();
+        });
+
+        game.enemies.forEach(enemy => {
+        console.log('Drawing enemy:', { x: enemy.x, y: enemy.y, symbol: enemy.symbol });
+        if (enemy.maxHealth > 1) {
+        const barWidth = 20;
+        const barHeight = 3;
+        const healthPercent = enemy.health / enemy.maxHealth;
+
+        game.ctx.fillStyle = '#333';
+        game.ctx.fillRect(enemy.x - barWidth/2, enemy.y - enemy.size - 8, barWidth, barHeight);
+
+        game.ctx.fillStyle = '#ff3333';
+        game.ctx.fillRect(enemy.x - barWidth/2, enemy.y - enemy.size - 8, barWidth * healthPercent, barHeight);
+        }
+
+        game.ctx.fillStyle = enemy.glow || '#ff3333';
+        game.ctx.shadowColor = enemy.glow || '#ff3333';
+        game.ctx.shadowBlur = enemy.glow ? 15 : 0;
+        game.ctx.font = `${enemy.size + 5}px Arial`;
+        game.ctx.textAlign = 'center';
+        game.ctx.fillText(enemy.symbol, enemy.x, enemy.y + enemy.size/2);
+        game.ctx.shadowBlur = 0;
+
+        if (!enemy.symbol) {
+        game.ctx.fillStyle = 'red';
+        game.ctx.fillRect(enemy.x - 2, enemy.y - 2, 4, 4);
+        }
+        });
+
+        if (!game.player.x || !game.player.y) {
+        game.ctx.fillStyle = 'red';
+        game.ctx.fillRect(game.centerX - 2, game.centerY - 2, 4, 4);
+        }
+
+        game.ctx.restore();
+        } catch (e) {
+        console.error('Render error:', e);
+        }
+        }
+
+        function gameLoop(timestamp = performance.now()) {
+        try {
+        update(timestamp);
+        render();
+        } catch (e) {
+        console.error('Game loop error:', e);
+        }
+        requestAnimationFrame(gameLoop);
+        }
+
+        
+const difficultyLevels = [
+  { label: "Eliot", spawnRate: 1500 },
+  { label: "Layperson", spawnRate: 1000 },
+  { label: "Deacon", spawnRate: 700 },
+  { label: "Bishop", spawnRate: 450 },
+  { label: "Doctor of the Church", spawnRate: 200 }
+];
+game.difficultySpawnRate = difficultyLevels[2].spawnRate;
+
+const slider = document.getElementById("difficultySlider");
+const label = document.getElementById("difficultyLabel");
+
+slider.addEventListener("input", (e) => {
+  const level = difficultyLevels[parseInt(e.target.value)];
+  label.textContent = level.label;
+  game.difficultySpawnRate = level.spawnRate;
+});
+
+
+init();
+        </script>
+        </body>
+        </html>
